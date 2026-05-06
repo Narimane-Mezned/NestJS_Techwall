@@ -10,6 +10,8 @@ import {
   Query,
 } from '@nestjs/common';
 import { Todo } from './entities/todo.entity';
+import { AddTodoDto } from './dto/add-todo.dto';
+import { GetPaginatedDto } from './dto/get-paginated.dto';
 @Controller('todo')
 export class TodoController {
   todos: Todo[];
@@ -17,7 +19,7 @@ export class TodoController {
     this.todos = [];
   }
   @Get()
-  getTodos(@Query() mesQueryParams) {
+  getTodos(@Query() mesQueryParams: GetPaginatedDto) {
     console.log(mesQueryParams);
     return this.todos;
   }
@@ -30,14 +32,19 @@ export class TodoController {
   }
   @Post()
   //je vais pas récupérer l'id du body mais plutot l'incrémenter et l'ajouter au tableau todos
-  addTodo(@Body() newTodo: Todo) {
+  addTodo(@Body() newTodo: AddTodoDto) {
+    const todo = new Todo(); // céer un nouveau objet todo car le newtodo n'a pas d'id
+    // on va lui ajouter les propriétés de newtodo:
+    todo.name = newTodo.name;
+    todo.description = newTodo.description;
+
     if (this.todos.length) {
-      newTodo.id = this.todos[this.todos.length - 1].id + 1; //dernier id dans le tableau + 1 pour l'incrémenter
+      todo.id = this.todos[this.todos.length - 1].id + 1; //dernier id dans le tableau + 1 pour l'incrémenter
     } else {
-      newTodo.id = 1; //si le tableau est vide, le premier id sera 1
+      todo.id = 1; //si le tableau est vide, le premier id sera 1
     }
-    this.todos.push(newTodo);
-    return newTodo;
+    this.todos.push(todo);
+    return todo;
   }
 
   //suppression d'un todo par id
@@ -56,7 +63,7 @@ export class TodoController {
   }
 
   @Put('/:id')
-  modifierTodo(@Param('id') id, @Body() newtodo: Partial<Todo>) {
+  modifierTodo(@Param('id') id, @Body() newtodo: Partial<AddTodoDto>) {
     const todo = this.getTodoById(id); //récupérer le todo à modifier
     /*
     todo ={
